@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { collection, query, where, getDocs, setDoc, doc, serverTimestamp, orderBy } from 'firebase/firestore';
-import { db } from '../firebase';
+import { db, storage } from '../firebase'; // Asegúrate de que storage esté configurado en firebase.js
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { v4 as uuidv4 } from 'uuid';
 import TextInput from './Controls/TextInput';
 import DateInput from './Controls/DateInput';
 import Checkbox from './Controls/Checkbox';
@@ -18,6 +20,7 @@ const SurveyForm = () => {
   const [responses, setResponses] = useState({});
   const [currentResponse, setCurrentResponse] = useState('');
   const [currentFile, setCurrentFile] = useState(null);
+  const [surveyUUID] = useState(uuidv4()); // UUID único para la encuesta
 
   useEffect(() => {
     const fetchQuestions = async () => {
@@ -60,9 +63,12 @@ const SurveyForm = () => {
     }));
   };
 
-  const handleFileChange = (file) => {
+  const handleFileChange = async (file) => {
     setCurrentFile(file);
-    handleResponseChange(file.name);
+    const fileRef = ref(storage, `files/${file.name}`);
+    await uploadBytes(fileRef, file);
+    const fileURL = await getDownloadURL(fileRef);
+    handleResponseChange(fileURL);
   };
 
   const handleNextQuestion = () => {
@@ -94,7 +100,8 @@ const SurveyForm = () => {
 
   const handleSubmitSurvey = async () => {
     for (const [questionID, response] of Object.entries(responses)) {
-      await setDoc(doc(collection(db, 'Responses'), questionID), {
+      await setDoc(doc(collection(db, 'Responses'), `${surveyUUID};${questionID}`), {
+        SurveyID: surveyUUID,
         QuestionID: questionID,
         Response: response,
         createdAt: serverTimestamp()
