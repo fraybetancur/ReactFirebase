@@ -1,41 +1,48 @@
 import React, { useState, useEffect } from 'react';
 import { collection, query, where, getDocs, addDoc, serverTimestamp, orderBy } from 'firebase/firestore';
 import { db } from '../firebase';
+import TextInput from './Controls/TextInput';
+import DateInput from './Controls/DateInput';
+import Checkbox from './Controls/Checkbox';
+import RadioGroup from './Controls/RadioGroup';
+import FileInput from './Controls/FileInput';
+import SearchableDropdown from './Controls/SearchableDropdown';
+import Rating from './Controls/Rating';
+import MapInput from './Controls/MapInput';
+import SignatureInput from './Controls/SignatureInput';
 
 const SurveyForm = () => {
-  const [questions, setQuestions] = useState([]); // Estado para almacenar las preguntas
-  const [choices, setChoices] = useState([]); // Estado para almacenar las opciones de respuesta
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0); // Estado para rastrear el índice de la pregunta actual
-  const [responses, setResponses] = useState([]); // Estado para almacenar las respuestas de los usuarios
-  const [currentResponse, setCurrentResponse] = useState(''); // Estado para el campo de respuesta actual
+  const [questions, setQuestions] = useState([]);
+  const [choices, setChoices] = useState([]);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [responses, setResponses] = useState([]);
+  const [currentResponse, setCurrentResponse] = useState('');
+  const [currentFile, setCurrentFile] = useState(null);
 
-  // useEffect para cargar las preguntas desde Firestore al montar el componente
   useEffect(() => {
     const fetchQuestions = async () => {
-      const q = query(collection(db, 'Survey'), orderBy('QuestionIndex')); // Consulta para obtener todas las preguntas de la colección Survey, ordenadas por QuestionIndex
+      const q = query(collection(db, 'Survey'), orderBy('QuestionIndex'));
       const querySnapshot = await getDocs(q);
-      const questionsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })); // Mapea los documentos a un formato de objeto
-      setQuestions(questionsData); // Establece el estado de las preguntas
+      const questionsData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setQuestions(questionsData);
     };
 
     fetchQuestions();
   }, []);
 
-  // useEffect para cargar las opciones de respuesta cada vez que cambia la pregunta actual
   useEffect(() => {
     if (questions.length > 0) {
       const fetchChoices = async () => {
-        const q = query(collection(db, 'Choices'), where('QuestionID', '==', questions[currentQuestionIndex].QuestionID)); // Consulta para obtener las opciones de respuesta de la pregunta actual
+        const q = query(collection(db, 'Choices'), where('QuestionID', '==', questions[currentQuestionIndex].QuestionID));
         const querySnapshot = await getDocs(q);
-        const choicesData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })); // Mapea los documentos a un formato de objeto
-        setChoices(choicesData); // Establece el estado de las opciones de respuesta
+        const choicesData = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setChoices(choicesData);
       };
 
       fetchChoices();
     }
   }, [questions, currentQuestionIndex]);
 
-  // Función para manejar el cambio de respuesta del usuario
   const handleResponseChange = (response) => {
     setCurrentResponse(response);
     setResponses(prevResponses => ({
@@ -44,18 +51,20 @@ const SurveyForm = () => {
     }));
   };
 
-  // Función para manejar el avance a la siguiente pregunta
+  const handleFileChange = (file) => {
+    setCurrentFile(file);
+    handleResponseChange(file.name);
+  };
+
   const handleNextQuestion = async () => {
     const currentQuestion = questions[currentQuestionIndex];
     const response = currentResponse;
 
-    // Verifica si la pregunta es requerida y si se ha proporcionado una respuesta
     if (currentQuestion.Required && !response) {
       alert('Please answer the required question before proceeding.');
       return;
     }
 
-    // Guardar la respuesta si se ha proporcionado
     if (response) {
       await addDoc(collection(db, 'Responses'), {
         CaseID: "some_case_id",
@@ -70,47 +79,90 @@ const SurveyForm = () => {
     }
 
     if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1); // Avanza a la siguiente pregunta si no es la última
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
     } else {
-      alert('Survey completed!'); // Muestra un mensaje cuando se completan todas las preguntas
-      console.log(responses); // Imprime las respuestas en la consola (puedes manejar esto de otra manera)
+      alert('Survey completed!');
+      console.log(responses);
     }
 
-    setCurrentResponse(''); // Restablecer el campo de respuesta actual
-    setChoices([]); // Limpia las opciones de la pregunta anterior
+    setCurrentResponse('');
+    setChoices([]);
+    setCurrentFile(null);
   };
 
-  const currentQuestion = questions[currentQuestionIndex]; // Obtiene la pregunta actual
+  const currentQuestion = questions[currentQuestionIndex];
 
-  if (!currentQuestion) return <div>Loading...</div>; // Muestra un mensaje de carga mientras se obtienen las preguntas
+  if (!currentQuestion) return <div>Loading...</div>;
 
   return (
     <div>
       <h2>
-        {currentQuestion.Required ? '*' : ''}{currentQuestion.QuestionText} {/* Muestra un asterisco si la pregunta es requerida */}
+        {currentQuestion.Required ? '*' : ''}{currentQuestion.QuestionText}
       </h2>
-      {currentQuestion.ResponseType === 'Opción Múltiple' && ( // Muestra las opciones de respuesta si el tipo de respuesta es "Opción Múltiple"
-        choices.map(choice => (
-          <div key={choice.OptionID}>
-            <input
-              type="radio"
-              name={currentQuestion.QuestionID}
-              value={choice.OptionText}
-              checked={currentResponse === choice.OptionText}
-              onChange={() => handleResponseChange(choice.OptionText)}
-            />
-            <label>{choice.OptionText}</label>
-          </div>
-        ))
+      {currentQuestion.ResponseType === 'Texto' && (
+        <TextInput value={currentResponse} onChange={handleResponseChange} />
       )}
-      {currentQuestion.ResponseType === 'Texto' && ( // Muestra un campo de texto si el tipo de respuesta es "Texto"
-        <input
-          type="text"
-          value={currentResponse}
-          onChange={e => handleResponseChange(e.target.value)}
+      {currentQuestion.ResponseType === 'Fecha' && (
+        <DateInput value={currentResponse} onChange={handleResponseChange} />
+      )}
+      {currentQuestion.ResponseType === 'Check' && (
+        <Checkbox
+          checked={currentResponse === 'Yes'}
+          onChange={() => handleResponseChange(currentResponse === 'Yes' ? '' : 'Yes')}
+          label={currentQuestion.QuestionText}
         />
       )}
-      <button onClick={handleNextQuestion}>Next</button> {/* Botón para avanzar a la siguiente pregunta */}
+      {currentQuestion.ResponseType === 'Opción Única' && (
+        <RadioGroup
+          name={currentQuestion.QuestionID}
+          options={choices.map(choice => ({ value: choice.OptionText, label: choice.OptionText }))}
+          value={currentResponse}
+          onChange={handleResponseChange}
+        />
+      )}
+      {currentQuestion.ResponseType === 'Opción Múltiple' && (
+        <div>
+          {choices.map(choice => (
+            <Checkbox
+              key={choice.OptionID}
+              checked={currentResponse.includes(choice.OptionText)}
+              onChange={() => {
+                const updatedResponse = currentResponse.includes(choice.OptionText)
+                  ? currentResponse.filter(item => item !== choice.OptionText)
+                  : [...currentResponse, choice.OptionText];
+                handleResponseChange(updatedResponse);
+              }}
+              label={choice.OptionText}
+            />
+          ))}
+        </div>
+      )}
+      {currentQuestion.ResponseType === 'Cuadro de búsqueda' && (
+        <SearchableDropdown
+          options={choices.map(choice => ({ value: choice.OptionText, label: choice.OptionText }))}
+          value={currentResponse}
+          onChange={handleResponseChange}
+        />
+      )}
+      {currentQuestion.ResponseType === 'Clasificación' && (
+        <Rating value={currentResponse} onChange={handleResponseChange} />
+      )}
+      {currentQuestion.ResponseType === 'Mapa' && (
+        <MapInput value={currentResponse} onChange={handleResponseChange} />
+      )}
+      {currentQuestion.ResponseType === 'Entrada de lápiz' && (
+        <SignatureInput value={currentResponse} onChange={handleResponseChange} />
+      )}
+      {['Cargar imagen', 'Audio', 'Cámara', 'Datos adjuntos', 'Visor de PDF'].includes(currentQuestion.ResponseType) && (
+        <FileInput
+          accept={currentQuestion.ResponseType === 'Cargar imagen' ? 'image/*' :
+                  currentQuestion.ResponseType === 'Audio' ? 'audio/*' :
+                  currentQuestion.ResponseType === 'Cámara' ? 'video/*' :
+                  currentQuestion.ResponseType === 'Visor de PDF' ? 'application/pdf' : ''}
+          onChange={handleFileChange}
+        />
+      )}
+      <button onClick={handleNextQuestion}>Next</button>
     </div>
   );
 };
