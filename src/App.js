@@ -1,25 +1,21 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useState } from 'react';
+import CaseForm from './components/CaseForm';
+import CaseList from './components/CaseList';
 
-function App() {
+const App = () => {
+  const [refresh, setRefresh] = useState(false);
+
+  const handleCaseAdded = () => {
+    setRefresh(!refresh);
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <h1>Gestión de Casos</h1>
+      <CaseForm onCaseAdded={handleCaseAdded} />
+      <CaseList key={refresh} />
     </div>
   );
-}
+};
 
 export default App;
