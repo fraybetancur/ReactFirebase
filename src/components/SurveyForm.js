@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, where, getDocs, addDoc, serverTimestamp, orderBy } from 'firebase/firestore';
+import { collection, query, where, getDocs, setDoc, doc, serverTimestamp, orderBy } from 'firebase/firestore';
 import { db } from '../firebase';
 import TextInput from './Controls/TextInput';
 import DateInput from './Controls/DateInput';
@@ -15,7 +15,7 @@ const SurveyForm = () => {
   const [questions, setQuestions] = useState([]);
   const [choices, setChoices] = useState([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [responses, setResponses] = useState([]);
+  const [responses, setResponses] = useState({});
   const [currentResponse, setCurrentResponse] = useState('');
   const [currentFile, setCurrentFile] = useState(null);
 
@@ -43,6 +43,15 @@ const SurveyForm = () => {
     }
   }, [questions, currentQuestionIndex]);
 
+  useEffect(() => {
+    const currentQuestion = questions[currentQuestionIndex];
+    if (currentQuestion && responses[currentQuestion.QuestionID]) {
+      setCurrentResponse(responses[currentQuestion.QuestionID]);
+    } else {
+      setCurrentResponse('');
+    }
+  }, [currentQuestionIndex, questions, responses]);
+
   const handleResponseChange = (response) => {
     setCurrentResponse(response);
     setResponses(prevResponses => ({
@@ -56,26 +65,13 @@ const SurveyForm = () => {
     handleResponseChange(file.name);
   };
 
-  const handleNextQuestion = async () => {
+  const handleNextQuestion = () => {
     const currentQuestion = questions[currentQuestionIndex];
     const response = currentResponse;
 
     if (currentQuestion.Required && !response) {
       alert('Please answer the required question before proceeding.');
       return;
-    }
-
-    if (response) {
-      await addDoc(collection(db, 'Responses'), {
-        CaseID: "some_case_id",
-        ParentCaseID: "some_parent_case_id",
-        CaseDetails: "some_case_details",
-        QuestionID: currentQuestion.QuestionID,
-        Index: currentQuestionIndex,
-        ResponseID: "some_response_id",
-        Response: response,
-        createdAt: serverTimestamp()
-      });
     }
 
     if (currentQuestionIndex < questions.length - 1) {
@@ -88,6 +84,23 @@ const SurveyForm = () => {
     setCurrentResponse('');
     setChoices([]);
     setCurrentFile(null);
+  };
+
+  const handlePreviousQuestion = () => {
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex(currentQuestionIndex - 1);
+    }
+  };
+
+  const handleSubmitSurvey = async () => {
+    for (const [questionID, response] of Object.entries(responses)) {
+      await setDoc(doc(collection(db, 'Responses'), questionID), {
+        QuestionID: questionID,
+        Response: response,
+        createdAt: serverTimestamp()
+      });
+    }
+    alert('All responses submitted!');
   };
 
   const currentQuestion = questions[currentQuestionIndex];
@@ -162,7 +175,11 @@ const SurveyForm = () => {
           onChange={handleFileChange}
         />
       )}
-      <button onClick={handleNextQuestion}>Next</button>
+      <button onClick={handlePreviousQuestion} disabled={currentQuestionIndex === 0}>Back</button>
+      <button onClick={handleNextQuestion} disabled={currentQuestionIndex >= questions.length - 1}>Next</button>
+      {currentQuestionIndex === questions.length - 1 && (
+        <button onClick={handleSubmitSurvey}>Submit</button>
+      )}
     </div>
   );
 };
