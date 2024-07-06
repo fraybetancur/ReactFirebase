@@ -1,21 +1,17 @@
-import React, { useState } from 'react';
-import CaseForm from './components/CaseForm';
-import CaseList from './components/CaseList';
+import React from 'react';
+import SurveyForm from './components/SurveyForm';
+import ExcelUploader from './components/ExcelUploader';
 
 const App = () => {
-  const [refresh, setRefresh] = useState(false);
-
-  const handleCaseAdded = () => {
-    setRefresh(!refresh);
-  };
-
   return (
     <div>
-      <h1>Gestión de Casos</h1>
-      <CaseForm onCaseAdded={handleCaseAdded} />
-      <CaseList key={refresh} />
+      <h1>Dynamic Survey Form</h1>
+      <ExcelUploader /> {/* Botón para cargar el archivo Excel */}
+      <SurveyForm /> {/* Renderiza el componente del formulario de la encuesta */}
     </div>
   );
 };
 
 export default App;
+
+
