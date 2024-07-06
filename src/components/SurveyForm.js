@@ -49,8 +49,14 @@ const SurveyForm = () => {
     const currentQuestion = questions[currentQuestionIndex];
     const response = currentResponse;
 
+    // Verifica si la pregunta es requerida y si se ha proporcionado una respuesta
+    if (currentQuestion.Required && !response) {
+      alert('Please answer the required question before proceeding.');
+      return;
+    }
+
+    // Guardar la respuesta si se ha proporcionado
     if (response) {
-      // Guardar la respuesta en la colección Responses
       await addDoc(collection(db, 'Responses'), {
         CaseID: "some_case_id",
         ParentCaseID: "some_parent_case_id",
@@ -61,19 +67,17 @@ const SurveyForm = () => {
         Response: response,
         createdAt: serverTimestamp()
       });
-
-      if (currentQuestionIndex < questions.length - 1) {
-        setCurrentQuestionIndex(currentQuestionIndex + 1); // Avanza a la siguiente pregunta si no es la última
-      } else {
-        alert('Survey completed!'); // Muestra un mensaje cuando se completan todas las preguntas
-        console.log(responses); // Imprime las respuestas en la consola (puedes manejar esto de otra manera)
-      }
-
-      setCurrentResponse(''); // Restablecer el campo de respuesta actual
-      setChoices([]); // Limpia las opciones de la pregunta anterior
-    } else {
-      alert('Please answer the question before proceeding.');
     }
+
+    if (currentQuestionIndex < questions.length - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1); // Avanza a la siguiente pregunta si no es la última
+    } else {
+      alert('Survey completed!'); // Muestra un mensaje cuando se completan todas las preguntas
+      console.log(responses); // Imprime las respuestas en la consola (puedes manejar esto de otra manera)
+    }
+
+    setCurrentResponse(''); // Restablecer el campo de respuesta actual
+    setChoices([]); // Limpia las opciones de la pregunta anterior
   };
 
   const currentQuestion = questions[currentQuestionIndex]; // Obtiene la pregunta actual

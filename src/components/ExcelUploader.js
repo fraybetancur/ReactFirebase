@@ -1,16 +1,18 @@
 import React, { useState } from 'react';
 import * as XLSX from 'xlsx';
-import { collection, addDoc } from 'firebase/firestore';
+import { collection, setDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase';
 
 const ExcelUploader = () => {
   const [isLoading, setIsLoading] = useState(false); // Estado para manejar la carga
+  const [progress, setProgress] = useState(0); // Estado para manejar el progreso de la carga
 
   const handleFileUpload = async (event) => {
     const file = event.target.files[0];
     const reader = new FileReader();
-    
+
     setIsLoading(true); // Inicia la carga
+    setProgress(0); // Resetea el progreso
 
     reader.onload = async (e) => {
       const data = new Uint8Array(e.target.result);
@@ -21,6 +23,7 @@ const ExcelUploader = () => {
       const surveyData = XLSX.utils.sheet_to_json(surveySheet);
 
       const surveyCollection = collection(db, 'Survey');
+      let count = 0;
       for (const row of surveyData) {
         const survey = {
           QuestionID: row.QuestionID,
@@ -29,7 +32,9 @@ const ExcelUploader = () => {
           Required: row.Required.toLowerCase() === 'yes',
           ResponseType: row.ResponseType
         };
-        await addDoc(surveyCollection, survey);
+        await setDoc(doc(surveyCollection, row.QuestionID), survey);
+        count++;
+        setProgress((count / surveyData.length) * 50); // Actualiza el progreso para la mitad de la carga
       }
 
       // Procesar las opciones de respuesta de la hoja 'Choices'
@@ -37,6 +42,7 @@ const ExcelUploader = () => {
       const choicesData = XLSX.utils.sheet_to_json(choicesSheet);
 
       const choicesCollection = collection(db, 'Choices');
+      count = 0;
       for (const row of choicesData) {
         const choice = {
           QuestionID: row.QuestionID,
@@ -44,11 +50,14 @@ const ExcelUploader = () => {
           OptionText: row.OptionText,
           OptionIndex: parseInt(row.OptionIndex, 10)
         };
-        await addDoc(choicesCollection, choice);
+        await setDoc(doc(choicesCollection, `${row.QuestionID}_${row.OptionID}`), choice);
+        count++;
+        setProgress(50 + (count / choicesData.length) * 50); // Actualiza el progreso para la segunda mitad de la carga
       }
 
       alert('Data imported successfully');
       setIsLoading(false); // Finaliza la carga
+      setProgress(100); // Progreso completo
     };
 
     reader.readAsArrayBuffer(file);
@@ -57,7 +66,12 @@ const ExcelUploader = () => {
   return (
     <div>
       <input type="file" accept=".xlsx, .xls" onChange={handleFileUpload} />
-      {isLoading && <p>Loading...</p>} {/* Indicador de carga */}
+      {isLoading && (
+        <div>
+          <p>Loading...</p>
+          <progress value={progress} max="100">{progress}%</progress> {/* Barra de carga */}
+        </div>
+      )}
     </div>
   );
 };
