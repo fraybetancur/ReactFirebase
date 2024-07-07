@@ -1,17 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useSwipeable } from 'react-swipeable';
 import { collection, query, where, getDocs, setDoc, doc, serverTimestamp, orderBy } from 'firebase/firestore';
-import { db, storage } from '../firebase'; // Asegúrate de que storage esté configurado en firebase.js
+import { db, storage } from '../firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { v4 as uuidv4 } from 'uuid';
-import TextInput from './Controls/TextInput';
-import DateInput from './Controls/DateInput';
-import Checkbox from './Controls/Checkbox';
-import RadioGroup from './Controls/RadioGroup';
-import FileInput from './Controls/FileInput';
-import SearchableDropdown from './Controls/SearchableDropdown';
-import Rating from './Controls/Rating';
-import MapInput from './Controls/MapInput';
-import SignatureInput from './Controls/SignatureInput';
+import { Container, Title, TextInput, Button, BackButton, FormGroup } from './StyledComponents';
+import MenuDrawer from './MenuDrawer';
 
 const SurveyForm = () => {
   const [questions, setQuestions] = useState([]);
@@ -20,7 +14,41 @@ const SurveyForm = () => {
   const [responses, setResponses] = useState({});
   const [currentResponse, setCurrentResponse] = useState('');
   const [currentFile, setCurrentFile] = useState(null);
-  const [surveyUUID] = useState(uuidv4()); // UUID único para la encuesta
+  const [surveyUUID] = useState(uuidv4());
+
+  const handleNextQuestion = () => {
+    const currentQuestion = questions[currentQuestionIndex];
+    const response = currentResponse;
+
+    if (currentQuestion.Required && !response) {
+      alert('Please answer the required question before proceeding.');
+      return;
+    }
+
+    if (currentQuestionIndex < questions.length - 1) {
+      setCurrentQuestionIndex(currentQuestionIndex + 1);
+    } else {
+      alert('Survey completed!');
+      console.log(responses);
+    }
+
+    setCurrentResponse('');
+    setChoices([]);
+    setCurrentFile(null);
+  };
+
+  const handlePreviousQuestion = () => {
+    if (currentQuestionIndex > 0) {
+      setCurrentQuestionIndex(currentQuestionIndex - 1);
+    }
+  };
+
+  const handlers = useSwipeable({
+    onSwipedLeft: handleNextQuestion,
+    onSwipedRight: handlePreviousQuestion,
+    preventDefaultTouchmoveEvent: true,
+    trackMouse: true
+  });
 
   useEffect(() => {
     const fetchQuestions = async () => {
@@ -71,33 +99,6 @@ const SurveyForm = () => {
     handleResponseChange(fileURL);
   };
 
-  const handleNextQuestion = () => {
-    const currentQuestion = questions[currentQuestionIndex];
-    const response = currentResponse;
-
-    if (currentQuestion.Required && !response) {
-      alert('Please answer the required question before proceeding.');
-      return;
-    }
-
-    if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
-    } else {
-      alert('Survey completed!');
-      console.log(responses);
-    }
-
-    setCurrentResponse('');
-    setChoices([]);
-    setCurrentFile(null);
-  };
-
-  const handlePreviousQuestion = () => {
-    if (currentQuestionIndex > 0) {
-      setCurrentQuestionIndex(currentQuestionIndex - 1);
-    }
-  };
-
   const handleSubmitSurvey = async () => {
     for (const [questionID, response] of Object.entries(responses)) {
       await setDoc(doc(collection(db, 'Responses'), `${surveyUUID};${questionID}`), {
@@ -116,77 +117,103 @@ const SurveyForm = () => {
 
   return (
     <div>
-      <h2>
-        {currentQuestion.Required ? '*' : ''}{currentQuestion.QuestionText}
-      </h2>
-      {currentQuestion.ResponseType === 'Texto' && (
-        <TextInput value={currentResponse} onChange={handleResponseChange} />
-      )}
-      {currentQuestion.ResponseType === 'Fecha' && (
-        <DateInput value={currentResponse} onChange={handleResponseChange} />
-      )}
-      {currentQuestion.ResponseType === 'Check' && (
-        <Checkbox
-          checked={currentResponse === 'Yes'}
-          onChange={() => handleResponseChange(currentResponse === 'Yes' ? '' : 'Yes')}
-          label={currentQuestion.QuestionText}
-        />
-      )}
-      {currentQuestion.ResponseType === 'Opción Única' && (
-        <RadioGroup
-          name={currentQuestion.QuestionID}
-          options={choices.map(choice => ({ value: choice.OptionText, label: choice.OptionText }))}
-          value={currentResponse}
-          onChange={handleResponseChange}
-        />
-      )}
-      {currentQuestion.ResponseType === 'Opción Múltiple' && (
-        <div>
-          {choices.map(choice => (
-            <Checkbox
-              key={choice.OptionID}
-              checked={currentResponse.includes(choice.OptionText)}
-              onChange={() => {
-                const updatedResponse = currentResponse.includes(choice.OptionText)
-                  ? currentResponse.filter(item => item !== choice.OptionText)
-                  : [...currentResponse, choice.OptionText];
-                handleResponseChange(updatedResponse);
-              }}
-              label={choice.OptionText}
+      <MenuDrawer />
+      <Container {...handlers}>
+        <Title>Survey Form</Title>
+        <h2>
+          {currentQuestion.Required ? '*' : ''}{currentQuestion.QuestionText}
+        </h2>
+        {currentQuestion.ResponseType === 'Texto' && (
+          <TextInput value={currentResponse} onChange={(e) => handleResponseChange(e.target.value)} />
+        )}
+        {currentQuestion.ResponseType === 'Fecha' && (
+          <TextInput type="date" value={currentResponse} onChange={(e) => handleResponseChange(e.target.value)} />
+        )}
+        {currentQuestion.ResponseType === 'Check' && (
+          <FormGroup>
+            <input
+              type="checkbox"
+              checked={currentResponse === 'Yes'}
+              onChange={() => handleResponseChange(currentResponse === 'Yes' ? '' : 'Yes')}
             />
-          ))}
-        </div>
-      )}
-      {currentQuestion.ResponseType === 'Cuadro de búsqueda' && (
-        <SearchableDropdown
-          options={choices.map(choice => ({ value: choice.OptionText, label: choice.OptionText }))}
-          value={currentResponse}
-          onChange={handleResponseChange}
-        />
-      )}
-      {currentQuestion.ResponseType === 'Clasificación' && (
-        <Rating value={currentResponse} onChange={handleResponseChange} />
-      )}
-      {currentQuestion.ResponseType === 'Mapa' && (
-        <MapInput value={currentResponse} onChange={handleResponseChange} />
-      )}
-      {currentQuestion.ResponseType === 'Entrada de lápiz' && (
-        <SignatureInput value={currentResponse} onChange={handleResponseChange} />
-      )}
-      {['Cargar imagen', 'Audio', 'Cámara', 'Datos adjuntos', 'Visor de PDF'].includes(currentQuestion.ResponseType) && (
-        <FileInput
-          accept={currentQuestion.ResponseType === 'Cargar imagen' ? 'image/*' :
-                  currentQuestion.ResponseType === 'Audio' ? 'audio/*' :
-                  currentQuestion.ResponseType === 'Cámara' ? 'video/*' :
-                  currentQuestion.ResponseType === 'Visor de PDF' ? 'application/pdf' : ''}
-          onChange={handleFileChange}
-        />
-      )}
-      <button onClick={handlePreviousQuestion} disabled={currentQuestionIndex === 0}>Back</button>
-      <button onClick={handleNextQuestion} disabled={currentQuestionIndex >= questions.length - 1}>Next</button>
-      {currentQuestionIndex === questions.length - 1 && (
-        <button onClick={handleSubmitSurvey}>Submit</button>
-      )}
+            <label>{currentQuestion.QuestionText}</label>
+          </FormGroup>
+        )}
+        {currentQuestion.ResponseType === 'Opción Única' && (
+          <FormGroup>
+            {choices.map(choice => (
+              <label key={choice.id}>
+                <input
+                  type="radio"
+                  name={currentQuestion.QuestionID}
+                  value={choice.OptionText}
+                  checked={currentResponse === choice.OptionText}
+                  onChange={() => handleResponseChange(choice.OptionText)}
+                />
+                {choice.OptionText}
+              </label>
+            ))}
+          </FormGroup>
+        )}
+        {currentQuestion.ResponseType === 'Opción Múltiple' && (
+          <FormGroup>
+            {choices.map(choice => (
+              <label key={choice.id}>
+                <input
+                  type="checkbox"
+                  value={choice.OptionText}
+                  checked={currentResponse.includes(choice.OptionText)}
+                  onChange={() => {
+                    const updatedResponse = currentResponse.includes(choice.OptionText)
+                      ? currentResponse.filter(item => item !== choice.OptionText)
+                      : [...currentResponse, choice.OptionText];
+                    handleResponseChange(updatedResponse);
+                  }}
+                />
+                {choice.OptionText}
+              </label>
+            ))}
+          </FormGroup>
+        )}
+        {currentQuestion.ResponseType === 'Cuadro de búsqueda' && (
+          <TextInput value={currentResponse} onChange={(e) => handleResponseChange(e.target.value)} />
+        )}
+        {currentQuestion.ResponseType === 'Clasificación' && (
+          <FormGroup>
+            <label>{currentQuestion.QuestionText}</label>
+            <TextInput
+              type="number"
+              value={currentResponse}
+              onChange={(e) => handleResponseChange(e.target.value)}
+              min="1"
+              max="5"
+            />
+          </FormGroup>
+        )}
+        {currentQuestion.ResponseType === 'Mapa' && (
+          <TextInput value={currentResponse} onChange={(e) => handleResponseChange(e.target.value)} />
+        )}
+        {currentQuestion.ResponseType === 'Entrada de lápiz' && (
+          <TextInput value={currentResponse} onChange={(e) => handleResponseChange(e.target.value)} />
+        )}
+        {['Cargar imagen', 'Audio', 'Cámara', 'Datos adjuntos', 'Visor de PDF'].includes(currentQuestion.ResponseType) && (
+          <TextInput
+            type="file"
+            accept={currentQuestion.ResponseType === 'Cargar imagen' ? 'image/*' :
+                    currentQuestion.ResponseType === 'Audio' ? 'audio/*' :
+                    currentQuestion.ResponseType === 'Cámara' ? 'video/*' :
+                    currentQuestion.ResponseType === 'Visor de PDF' ? 'application/pdf' : ''}
+            onChange={(e) => handleFileChange(e.target.files[0])}
+          />
+        )}
+        <FormGroup>
+          <BackButton onClick={handlePreviousQuestion} disabled={currentQuestionIndex === 0}>Back</BackButton>
+          <Button onClick={handleNextQuestion} disabled={currentQuestionIndex >= questions.length - 1}>Next</Button>
+          {currentQuestionIndex === questions.length - 1 && (
+            <Button onClick={handleSubmitSurvey}>Submit</Button>
+          )}
+        </FormGroup>
+      </Container>
     </div>
   );
 };
