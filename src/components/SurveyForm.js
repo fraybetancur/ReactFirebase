@@ -18,6 +18,10 @@ import {
 } from './StyledComponents';
 import MenuDrawer, { MenuButtonWrapper } from './MenuDrawer';
 import { GlobalStyle } from './StyledComponents';
+import RadioGroup from '../components/Controls/RadioGroup';
+import DateInput from '../components/Controls/DateInput';
+import CheckboxGroup from '../components/Controls/Checkbox';
+
 
 const SurveyForm = () => {
   const [questions, setQuestions] = useState([]);
@@ -151,7 +155,7 @@ const SurveyForm = () => {
             <TextInput value={currentResponse} onChange={(e) => handleResponseChange(e.target.value)} />
           )}
           {currentQuestion.ResponseType === 'Fecha' && (
-            <TextInput type="date" value={currentResponse} onChange={(e) => handleResponseChange(e.target.value)} />
+            <DateInput value={currentResponse || ''} onChange={(value) => handleResponseChange(value)} />
           )}
           {currentQuestion.ResponseType === 'Check' && (
             <FormGroup>
@@ -165,40 +169,32 @@ const SurveyForm = () => {
           )}
           {currentQuestion.ResponseType === 'Opción Única' && (
             <FormGroup>
-              {choices.map(choice => (
-                <label key={choice.id}>
-                  <input
-                    type="radio"
-                    name={currentQuestion.QuestionID}
-                    value={choice.OptionText}
-                    checked={currentResponse === choice.OptionText}
-                    onChange={() => handleResponseChange(choice.OptionText)}
-                  />
-                  {choice.OptionText}
-                </label>
-              ))}
+              <RadioGroup
+                options={choices.map(choice => ({
+                  value: choice.OptionText,
+                  label: choice.OptionText
+                }))}
+                value={currentResponse}
+                onChange={handleResponseChange}
+                name={currentQuestion.QuestionID}
+                hint="*Seleccione una opción de la lista"
+              />
             </FormGroup>
           )}
           {currentQuestion.ResponseType === 'Opción Múltiple' && (
             <FormGroup>
-              {choices.map(choice => (
-                <label key={choice.id}>
-                  <input
-                    type="checkbox"
-                    value={choice.OptionText}
-                    checked={currentResponse.includes(choice.OptionText)}
-                    onChange={() => {
-                      const updatedResponse = currentResponse.includes(choice.OptionText)
-                        ? currentResponse.filter(item => item !== choice.OptionText)
-                        : [...currentResponse, choice.OptionText];
-                      handleResponseChange(updatedResponse);
-                    }}
-                  />
-                  {choice.OptionText}
-                </label>
-              ))}
+              <CheckboxGroup
+                options={choices.map(choice => ({
+                  value: choice.OptionText,
+                  label: choice.OptionText
+                }))}
+                value={currentResponse}
+                onChange={handleResponseChange}
+                name={currentQuestion.QuestionID}
+                hint="*Seleccione todas las opciones que apliquen"
+              />
             </FormGroup>
-          )}
+          )}  
           {currentQuestion.ResponseType === 'Cuadro de búsqueda' && (
             <TextInput value={currentResponse} onChange={(e) => handleResponseChange(e.target.value)} />
           )}

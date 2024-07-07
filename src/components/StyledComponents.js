@@ -1,6 +1,5 @@
 import styled from 'styled-components';
 import { lighten } from 'polished';
-
 import { createGlobalStyle } from 'styled-components';
 
 export const GlobalStyle = createGlobalStyle`
@@ -29,6 +28,12 @@ export const ScreenContainer = styled.div`
   background-color: #FAFAFA; /* Fondo claro para resaltar separación */
   padding: 10px; /* Espaciado interno */
   box-sizing: border-box; /* Incluir padding en el tamaño del contenedor */
+
+  /* Centrando el contenedor para pantallas más grandes */
+  @media (min-width: 768px) {
+    width: 375px; /* Ancho similar a un dispositivo móvil */
+    margin: 0 auto; /* Centrando horizontalmente */
+  }
 `;
 
 export const HeaderContainer = styled.div`
@@ -46,7 +51,6 @@ export const HeaderContainer = styled.div`
   margin-bottom: 10px; /* Espaciado externo */
   box-sizing: border-box; /* Incluir padding en el tamaño del contenedor */
 `;
-
 
 export const MenuButton = styled.button`
   background: none;
@@ -129,12 +133,29 @@ export const BackButton = styled(Button)`
 `;
 
 export const TextInput = styled.input`
-  width: 100%;
-  padding: 10px;
-  margin: 10px 0;
-  border: 1px solid #ccc;
-  border-radius: 5px;
+  display: flex;
+  flex-direction: column;
+  width: 93%;
+  height: 93%;
+  margin: 5px 0;
   font-size: 1rem;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  transition: border-color 0.3s, box-shadow 0.3s;
+  cursor: pointer;
+  text-align: left; 
+
+  &:hover {
+    border-color: ${lighten(0.2, '#ccc')};
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+  }
+
+  &:focus {
+    border-color: #0078d4;
+    box-shadow: 0 0 5px rgba(0, 120, 212, 0.5);
+    outline: none;
+  }
 `;
 
 export const FormGroup = styled.div`
@@ -142,6 +163,52 @@ export const FormGroup = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  border: 1px solid rgba(226, 226, 226, 1); /* Agregar borde */
+  border: 0px solid rgba(226, 226, 226, 1); /* Agregar borde */
   margin-bottom: 10px; /* Espaciado externo */
+`;
+
+export const Hint = styled.p`
+  font-size: 14px;
+  color: #888;
+  margin-bottom: 10px;
+  text-align: center;
+  width: 100%;
+`;
+
+export const CheckboxGroup = styled.div`
+  width: 93%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  padding: 10px;
+  border-radius: 5px;
+
+  label {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 10px;
+    border: 1px solid transparent;
+    border-radius: 5px;
+    transition: background-color 0.3s, border-color 0.3s;
+
+    &:hover {
+      background-color: #f0f0f0;
+      border-color: #0078d4;
+    }
+
+    input {
+      margin-right: 10px;
+    }
+  }
+`;
+
+export const RadioGroup = styled(CheckboxGroup)`
+  label {
+    input {
+      border-radius: 50%;
+    }
+  }
 `;
