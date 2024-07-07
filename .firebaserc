@@ -1,5 +1,9 @@
 {
   "projects": {
-    "default": "datmetrics-673c2"
-  }
+    "default": "datmetrics-6aa86",
+    "staging": "datmetrics-6aa86"
+  },
+  "targets": {},
+  "etags": {},
+  "dataconnectEmulatorConfig": {}
 }
