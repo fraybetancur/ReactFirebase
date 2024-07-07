@@ -16,10 +16,10 @@
     "xlsx": "^0.18.5"
   },
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "start": "react-app-rewired start",
+    "test": "react-app-rewired test",
+    "eject": "react-scripts eject",
+    "build": "react-scripts build && workbox injectManifest workbox-config.js"
   },
   "eslintConfig": {
     "extends": [
@@ -40,7 +40,9 @@
     ]
   },
   "devDependencies": {
+    "customize-cra": "^1.0.0",
     "react-app-rewired": "^2.2.1",
+    "workbox-cli": "^7.1.0",
     "workbox-webpack-plugin": "^7.1.0"
   }
 }

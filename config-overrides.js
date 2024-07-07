@@ -1,14 +1,11 @@
-const WorkboxWebpackPlugin = require('workbox-webpack-plugin');
+const { injectManifest } = require('workbox-webpack-plugin');
+const { override, addWebpackPlugin } = require('customize-cra');
 
-module.exports = function override(config, env) {
-  if (env === 'production') {
-    config.plugins.push(
-      new WorkboxWebpackPlugin.InjectManifest({
-        swSrc: './src/service-worker.js',
-        swDest: 'service-worker.js',
-      })
-    );
-  }
-
-  return config;
-};
+module.exports = override(
+  addWebpackPlugin(
+    new injectManifest({
+      swSrc: './src/service-worker.js',
+      swDest: 'service-worker.js',
+    })
+  )
+);
