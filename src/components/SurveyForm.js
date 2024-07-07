@@ -7,15 +7,15 @@ import { v4 as uuidv4 } from 'uuid';
 import {
   ScreenContainer,
   HeaderContainer,
+  SearchContainer,
   BodyContainer,
-  QuestionContainer,
-  OptionContainer,
   ButtonContainer,
   Button,
   BackButton,
+  TextInput,
   FormGroup,
-  TextInput, // Importar TextInput
-  ButtonContainerFixed
+  MenuButton,
+  Title
 } from './StyledComponents';
 import MenuDrawer from './MenuDrawer';
 
@@ -128,108 +128,108 @@ const SurveyForm = () => {
   if (!currentQuestion) return <div>Loading...</div>;
 
   return (
-    <ScreenContainer>
-      <MenuDrawer />
-      <HeaderContainer>
-        <h1>Survey Form</h1>
+    <ScreenContainer height="100vh" minHeight="600px" width="100vw" minWidth="320px" {...handlers}>
+        <HeaderContainer>
+        <MenuDrawer />
+        <Title>{currentQuestion.QuestionText}</Title>
       </HeaderContainer>
-      <BodyContainer {...handlers}>
-        <QuestionContainer>
-          <h2>
-            {currentQuestion.Required ? '*' : ''}{currentQuestion.QuestionText}
-          </h2>
-          {currentQuestion.ResponseType === 'Texto' && (
-            <TextInput value={currentResponse} onChange={(e) => handleResponseChange(e.target.value)} />
-          )}
-          {currentQuestion.ResponseType === 'Fecha' && (
-            <TextInput type="date" value={currentResponse} onChange={(e) => handleResponseChange(e.target.value)} />
-          )}
-          {currentQuestion.ResponseType === 'Check' && (
-            <FormGroup>
-              <input
-                type="checkbox"
-                checked={currentResponse === 'Yes'}
-                onChange={() => handleResponseChange(currentResponse === 'Yes' ? '' : 'Yes')}
-              />
-              <label>{currentQuestion.QuestionText}</label>
-            </FormGroup>
-          )}
-          {currentQuestion.ResponseType === 'Opción Única' && (
-            <FormGroup>
-              {choices.map(choice => (
-                <label key={choice.id}>
-                  <input
-                    type="radio"
-                    name={currentQuestion.QuestionID}
-                    value={choice.OptionText}
-                    checked={currentResponse === choice.OptionText}
-                    onChange={() => handleResponseChange(choice.OptionText)}
-                  />
-                  {choice.OptionText}
-                </label>
-              ))}
-            </FormGroup>
-          )}
-          {currentQuestion.ResponseType === 'Opción Múltiple' && (
-            <FormGroup>
-              {choices.map(choice => (
-                <label key={choice.id}>
-                  <input
-                    type="checkbox"
-                    value={choice.OptionText}
-                    checked={currentResponse.includes(choice.OptionText)}
-                    onChange={() => {
-                      const updatedResponse = currentResponse.includes(choice.OptionText)
-                        ? currentResponse.filter(item => item !== choice.OptionText)
-                        : [...currentResponse, choice.OptionText];
-                      handleResponseChange(updatedResponse);
-                    }}
-                  />
-                  {choice.OptionText}
-                </label>
-              ))}
-            </FormGroup>
-          )}
-          {currentQuestion.ResponseType === 'Cuadro de búsqueda' && (
-            <TextInput value={currentResponse} onChange={(e) => handleResponseChange(e.target.value)} />
-          )}
-          {currentQuestion.ResponseType === 'Clasificación' && (
-            <FormGroup>
-              <label>{currentQuestion.QuestionText}</label>
-              <TextInput
-                type="number"
-                value={currentResponse}
-                onChange={(e) => handleResponseChange(e.target.value)}
-                min="1"
-                max="5"
-              />
-            </FormGroup>
-          )}
-          {currentQuestion.ResponseType === 'Mapa' && (
-            <TextInput value={currentResponse} onChange={(e) => handleResponseChange(e.target.value)} />
-          )}
-          {currentQuestion.ResponseType === 'Entrada de lápiz' && (
-            <TextInput value={currentResponse} onChange={(e) => handleResponseChange(e.target.value)} />
-          )}
-          {['Cargar imagen', 'Audio', 'Cámara', 'Datos adjuntos', 'Visor de PDF'].includes(currentQuestion.ResponseType) && (
-            <TextInput
-              type="file"
-              accept={currentQuestion.ResponseType === 'Cargar imagen' ? 'image/*' :
-                      currentQuestion.ResponseType === 'Audio' ? 'audio/*' :
-                      currentQuestion.ResponseType === 'Cámara' ? 'video/*' :
-                      currentQuestion.ResponseType === 'Visor de PDF' ? 'application/pdf' : ''}
-              onChange={(e) => handleFileChange(e.target.files[0])}
+      <SearchContainer>
+        {/* Añadir lógica de búsqueda si es necesario */}
+      </SearchContainer>
+      <BodyContainer>
+        {currentQuestion.ResponseType === 'Texto' && (
+          <TextInput value={currentResponse} onChange={(e) => handleResponseChange(e.target.value)} />
+        )}
+        {currentQuestion.ResponseType === 'Fecha' && (
+          <TextInput type="date" value={currentResponse} onChange={(e) => handleResponseChange(e.target.value)} />
+        )}
+        {currentQuestion.ResponseType === 'Check' && (
+          <FormGroup>
+            <input
+              type="checkbox"
+              checked={currentResponse === 'Yes'}
+              onChange={() => handleResponseChange(currentResponse === 'Yes' ? '' : 'Yes')}
             />
-          )}
-        </QuestionContainer>
-        <ButtonContainerFixed>
-          <BackButton onClick={handlePreviousQuestion} disabled={currentQuestionIndex === 0}>Back</BackButton>
-          <Button onClick={handleNextQuestion} disabled={currentQuestionIndex >= questions.length - 1}>Next</Button>
-          {currentQuestionIndex === questions.length - 1 && (
-            <Button onClick={handleSubmitSurvey}>Submit</Button>
-          )}
-        </ButtonContainerFixed>
+            <label>{currentQuestion.QuestionText}</label>
+          </FormGroup>
+        )}
+        {currentQuestion.ResponseType === 'Opción Única' && (
+          <FormGroup>
+            {choices.map(choice => (
+              <label key={choice.id}>
+                <input
+                  type="radio"
+                  name={currentQuestion.QuestionID}
+                  value={choice.OptionText}
+                  checked={currentResponse === choice.OptionText}
+                  onChange={() => handleResponseChange(choice.OptionText)}
+                />
+                {choice.OptionText}
+              </label>
+            ))}
+          </FormGroup>
+        )}
+        {currentQuestion.ResponseType === 'Opción Múltiple' && (
+          <FormGroup>
+            {choices.map(choice => (
+              <label key={choice.id}>
+                <input
+                  type="checkbox"
+                  value={choice.OptionText}
+                  checked={currentResponse.includes(choice.OptionText)}
+                  onChange={() => {
+                    const updatedResponse = currentResponse.includes(choice.OptionText)
+                      ? currentResponse.filter(item => item !== choice.OptionText)
+                      : [...currentResponse, choice.OptionText];
+                    handleResponseChange(updatedResponse);
+                  }}
+                />
+                {choice.OptionText}
+              </label>
+            ))}
+          </FormGroup>
+        )}
+        {currentQuestion.ResponseType === 'Cuadro de búsqueda' && (
+          <TextInput value={currentResponse} onChange={(e) => handleResponseChange(e.target.value)} />
+        )}
+        {currentQuestion.ResponseType === 'Clasificación' && (
+          <FormGroup>
+            <label>{currentQuestion.QuestionText}</label>
+            <TextInput
+              type="number"
+              value={currentResponse}
+              onChange={(e) => handleResponseChange(e.target.value)}
+              min="1"
+              max="5"
+            />
+          </FormGroup>
+        )}
+        {currentQuestion.ResponseType === 'Mapa' && (
+          <TextInput value={currentResponse} onChange={(e) => handleResponseChange(e.target.value)} />
+        )}
+        {currentQuestion.ResponseType === 'Entrada de lápiz' && (
+          <TextInput value={currentResponse} onChange={(e) => handleResponseChange(e.target.value)} />
+        )}
+        {['Cargar imagen', 'Audio', 'Cámara', 'Datos adjuntos', 'Visor de PDF'].includes(currentQuestion.ResponseType) && (
+          <TextInput
+            type="file"
+            accept={currentQuestion.ResponseType === 'Cargar imagen' ? 'image/*' :
+                    currentQuestion.ResponseType === 'Audio' ? 'audio/*' :
+                    currentQuestion.ResponseType === 'Cámara' ? 'video/*' :
+                    currentQuestion.ResponseType === 'Visor de PDF' ? 'application/pdf' : ''}
+            onChange={(e) => handleFileChange(e.target.files[0])}
+          />
+        )}
       </BodyContainer>
+      <ButtonContainer>
+        <BackButton onClick={handlePreviousQuestion} disabled={currentQuestionIndex === 0}>Back</BackButton>
+        {currentQuestionIndex < questions.length - 1 && (
+          <Button onClick={handleNextQuestion}>Next</Button>
+        )}
+        {currentQuestionIndex === questions.length - 1 && (
+          <Button onClick={handleSubmitSurvey}>Submit</Button>
+        )}
+      </ButtonContainer>
     </ScreenContainer>
   );
 };

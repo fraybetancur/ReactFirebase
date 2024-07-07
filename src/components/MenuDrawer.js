@@ -35,7 +35,7 @@ const MenuDrawer = () => {
 
   return (
     <div>
-      <Button onClick={toggleDrawer('left', true)}>Open Menu</Button>
+      <Button onClick={toggleDrawer('left', true)}>☰</Button>
       <Drawer
         anchor="left"
         open={state['left']}
