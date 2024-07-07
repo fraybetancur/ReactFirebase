@@ -1,30 +1,28 @@
 import * as React from 'react';
 import Box from '@mui/material/Box';
 import Drawer from '@mui/material/Drawer';
-import Button from '@mui/material/Button';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
+import { MenuButton } from './StyledComponents';
 
-const MenuDrawer = () => {
-  const [state, setState] = React.useState({ left: false });
-
-  const toggleDrawer = (anchor, open) => (event) => {
+const MenuDrawer = ({ isOpen, toggleDrawer }) => {
+  const toggleDrawerHandler = (anchor, open) => (event) => {
     if (event.type === 'keydown' && (event.key === 'Tab' || event.key === 'Shift')) {
       return;
     }
-    setState({ ...state, [anchor]: open });
+    toggleDrawer(anchor, open);
   };
 
   const list = (anchor) => (
     <Box
       sx={{ width: 250 }}
       role="presentation"
-      onClick={toggleDrawer(anchor, false)}
-      onKeyDown={toggleDrawer(anchor, false)}
+      onClick={toggleDrawerHandler(anchor, false)}
+      onKeyDown={toggleDrawerHandler(anchor, false)}
     >
       <List>
-        {['Home', 'Events', 'Browse Library', 'Messages', 'Community Feed'].map((text, index) => (
+        {['Home', 'Events', 'Browse Library', 'Messages', 'Community Feed'].map((text) => (
           <ListItem button key={text}>
             <ListItemText primary={text} />
           </ListItem>
@@ -34,17 +32,18 @@ const MenuDrawer = () => {
   );
 
   return (
-    <div>
-      <Button onClick={toggleDrawer('left', true)}>☰</Button>
-      <Drawer
-        anchor="left"
-        open={state['left']}
-        onClose={toggleDrawer('left', false)}
-      >
-        {list('left')}
-      </Drawer>
-    </div>
+    <Drawer
+      anchor="left"
+      open={isOpen}
+      onClose={toggleDrawerHandler('left', false)}
+    >
+      {list('left')}
+    </Drawer>
   );
 };
+
+export const MenuButtonWrapper = ({ toggleDrawer }) => (
+  <MenuButton onClick={toggleDrawer('left', true)}>☰</MenuButton>
+);
 
 export default MenuDrawer;

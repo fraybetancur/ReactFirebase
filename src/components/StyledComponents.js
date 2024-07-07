@@ -1,10 +1,27 @@
 import styled from 'styled-components';
 import { lighten } from 'polished';
 
+import { createGlobalStyle } from 'styled-components';
+
+export const GlobalStyle = createGlobalStyle`
+  html, body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden; /* Evitar cualquier desplazamiento */
+    width: 100%;
+    height: 100%;
+  }
+
+  #root {
+    width: 100%;
+    height: 100%;
+  }
+`;
+
 export const ScreenContainer = styled.div`
   display: flex;
   flex-direction: column;
-  height: ${({ $height }) => $height || '100vh'};
+  height: ${({ $height }) => $height || '98vh'};
   width: ${({ $width }) => $width || '100vw'};
   overflow: hidden;
   min-height: ${({ $minHeight }) => $minHeight || '600px'};
@@ -17,6 +34,7 @@ export const ScreenContainer = styled.div`
 export const HeaderContainer = styled.div`
   display: flex;
   align-items: center; /* Centrar contenido verticalmente */
+  justify-content: space-between; /* Asegurar que el contenido se distribuya */
   background-color: #0078d4;
   color: #ffffff;
   height: 40px; /* Altura fija */
@@ -28,6 +46,7 @@ export const HeaderContainer = styled.div`
   margin-bottom: 10px; /* Espaciado externo */
   box-sizing: border-box; /* Incluir padding en el tamaño del contenedor */
 `;
+
 
 export const MenuButton = styled.button`
   background: none;
