@@ -12,6 +12,7 @@ const Hint = styled.div`
   margin-bottom: 10px;
   font-size: 0.65rem;
   color: #6c757d;
+  font-style: italic;
 `;
 
 const RadioWrapper = styled.label`

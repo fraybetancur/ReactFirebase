@@ -21,6 +21,8 @@ import { GlobalStyle } from './StyledComponents';
 import RadioGroup from '../components/Controls/RadioGroup';
 import DateInput from '../components/Controls/DateInput';
 import CheckboxGroup from '../components/Controls/Checkbox';
+import TextArea from '../components/Controls/TextArea';
+import SearchableDropdown from './Controls/SearchableDropdown';
 
 
 const SurveyForm = () => {
@@ -152,7 +154,11 @@ const SurveyForm = () => {
         </SearchContainer>
         <BodyContainer>
           {currentQuestion.ResponseType === 'Texto' && (
-            <TextInput value={currentResponse} onChange={(e) => handleResponseChange(e.target.value)} />
+            <TextArea
+              value={currentResponse || ''}
+              onChange={(e) => handleResponseChange(e)}
+              label="*Ingrese su respuesta"
+            />
           )}
           {currentQuestion.ResponseType === 'Fecha' && (
             <DateInput value={currentResponse || ''} onChange={(value) => handleResponseChange(value)} />
@@ -196,7 +202,11 @@ const SurveyForm = () => {
             </FormGroup>
           )}  
           {currentQuestion.ResponseType === 'Cuadro de búsqueda' && (
-            <TextInput value={currentResponse} onChange={(e) => handleResponseChange(e.target.value)} />
+            <SearchableDropdown
+              options={choices}
+              value={currentResponse}
+              onChange={(e) => handleResponseChange(e)}
+            />
           )}
           {currentQuestion.ResponseType === 'Clasificación' && (
             <FormGroup>
