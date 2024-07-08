@@ -34,10 +34,7 @@ const SurveyForm = () => {
   const [surveyUUID] = useState(uuidv4());
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const toggleDrawer = (anchor, open) => (event) => {
-    if (event && event.type === 'keydown' && (event.key === 'Tab' || event.key === 'Shift')) {
-      return;
-    }
+  const toggleDrawer = (open) => {
     setIsMenuOpen(open);
     console.log('Drawer en SurveyForm ahora está:', open ? 'abierto' : 'cerrado');
   };

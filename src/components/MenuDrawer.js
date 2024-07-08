@@ -4,6 +4,7 @@ import Drawer from '@mui/material/Drawer';
 import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
+import Button from '@mui/material/Button';
 import { MenuButton } from './StyledComponents';
 
 const MenuDrawer = ({ isOpen, toggleDrawer, onMenuClick }) => {
@@ -11,7 +12,6 @@ const MenuDrawer = ({ isOpen, toggleDrawer, onMenuClick }) => {
     if (typeof onMenuClick === 'function') {
       onMenuClick(page);
     }
-    toggleDrawer(false);
   };
 
   const list = () => (
@@ -24,6 +24,7 @@ const MenuDrawer = ({ isOpen, toggleDrawer, onMenuClick }) => {
           <ListItemText primary="Excel Uploader" />
         </ListItemButton>
       </List>
+      <Button onClick={() => toggleDrawer(false)}>Cerrar Menú</Button> {/* Botón para cerrar el menú */}
     </Box>
   );
 
