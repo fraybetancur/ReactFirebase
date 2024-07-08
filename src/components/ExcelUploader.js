@@ -48,7 +48,8 @@ const ExcelUploader = () => {
           QuestionID: row.QuestionID,
           OptionID: row.OptionID,
           OptionText: row.OptionText,
-          OptionIndex: parseInt(row.OptionIndex, 10)
+          ParentOptionID: row.ParentOptionID !== undefined ? row.ParentOptionID : null, // Asegura que no sea undefined
+          Index: parseInt(row.Index, 10)
         };
         await setDoc(doc(choicesCollection, `${row.QuestionID}_${row.OptionID}`), choice);
         count++;

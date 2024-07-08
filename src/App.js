@@ -1,15 +1,21 @@
-import React from 'react';
+import React, { useState } from 'react';
 import SurveyForm from './components/SurveyForm';
 import ExcelUploader from './components/ExcelUploader';
-import MenuDrawer from './components/MenuDrawer'; // Asegúrate de importar este componente
+import MenuDrawer, { MenuButtonWrapper } from './components/MenuDrawer';
 
 const App = () => {
+  const [currentPage, setCurrentPage] = useState('survey');
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page);
+  };
+
   return (
     <div>
-      <MenuDrawer />
-      {/* <h1>Dynamic Survey Form</h1> */}
-      {/*<ExcelUploader /> {/* Botón para cargar el archivo Excel */}
-      <SurveyForm /> {/* Renderiza el componente del formulario de la encuesta */}
+      <MenuButtonWrapper toggleDrawer={() => {}} />
+      <MenuDrawer isOpen={true} toggleDrawer={() => {}} onMenuClick={handlePageChange} />
+      {currentPage === 'survey' && <SurveyForm />}
+      {currentPage === 'upload' && <ExcelUploader />}
     </div>
   );
 };

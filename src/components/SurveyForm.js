@@ -24,7 +24,6 @@ import CheckboxGroup from '../components/Controls/Checkbox';
 import TextArea from '../components/Controls/TextArea';
 import SearchableDropdown from './Controls/SearchableDropdown';
 
-
 const SurveyForm = () => {
   const [questions, setQuestions] = useState([]);
   const [choices, setChoices] = useState([]);
@@ -36,10 +35,11 @@ const SurveyForm = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const toggleDrawer = (anchor, open) => (event) => {
-    if (event.type === 'keydown' && (event.key === 'Tab' || event.key === 'Shift')) {
+    if (event && event.type === 'keydown' && (event.key === 'Tab' || event.key === 'Shift')) {
       return;
     }
     setIsMenuOpen(open);
+    console.log('Drawer en SurveyForm ahora está:', open ? 'abierto' : 'cerrado');
   };
 
   const handleNextQuestion = () => {
@@ -138,6 +138,14 @@ const SurveyForm = () => {
   };
 
   const currentQuestion = questions[currentQuestionIndex];
+  const previousResponse = currentQuestionIndex > 0 ? responses[questions[currentQuestionIndex - 1].QuestionID] : null;
+  const getFilteredChoices = () => {
+    if (!previousResponse) return choices;
+    return choices.filter(choice =>
+      !choice.ParentOptionID ||
+      (choice.ParentOptionID && choice.ParentOptionIndex === previousResponse)
+    );
+  };
 
   if (!currentQuestion) return <div>Loading...</div>;
 
@@ -176,7 +184,7 @@ const SurveyForm = () => {
           {currentQuestion.ResponseType === 'Opción Única' && (
             <FormGroup>
               <RadioGroup
-                options={choices.map(choice => ({
+                options={getFilteredChoices().map(choice => ({
                   value: choice.OptionText,
                   label: choice.OptionText
                 }))}
@@ -190,7 +198,7 @@ const SurveyForm = () => {
           {currentQuestion.ResponseType === 'Opción Múltiple' && (
             <FormGroup>
               <CheckboxGroup
-                options={choices.map(choice => ({
+                options={getFilteredChoices().map(choice => ({
                   value: choice.OptionText,
                   label: choice.OptionText
                 }))}
@@ -200,12 +208,15 @@ const SurveyForm = () => {
                 hint="*Seleccione todas las opciones que apliquen"
               />
             </FormGroup>
-          )}  
+          )}
           {currentQuestion.ResponseType === 'Cuadro de búsqueda' && (
             <SearchableDropdown
-              options={choices}
+              options={getFilteredChoices().map(choice => ({
+                value: choice.OptionText,
+                label: choice.OptionText
+              }))}
               value={currentResponse}
-              onChange={(e) => handleResponseChange(e)}
+              onChange={(value) => handleResponseChange(value)}
             />
           )}
           {currentQuestion.ResponseType === 'Clasificación' && (
